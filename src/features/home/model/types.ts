@@ -1,3 +1,5 @@
+import type { LotteryDashboardData } from "@/src/shared/contracts/lottery"
+
 // BannerItem 描述首页轮播项；type 用来区分广告位和官方位。
 export interface BannerItem {
   id: number
@@ -91,33 +93,7 @@ export interface LotteryCategoryItem {
 }
 
 // DashboardData 是首页直播/开奖主舞台的聚合数据。
-export interface DashboardData {
-  special_lottery: {
-    id: number
-    name: string
-    code: string
-    current_issue: string
-    next_draw_at: string
-  }
-  live: {
-    show_player: boolean
-    has_data?: boolean
-    status: string
-    stream_url: string
-  }
-  draw: {
-    draw_record_id: number
-    special_lottery_id: number
-    issue: string
-    draw_at: string
-    normal_numbers?: number[]
-    special_number?: number
-    draw_result?: string
-    playback_url?: string
-    numbers: number[]
-    labels: string[]
-  }
-}
+export type DashboardData = LotteryDashboardData
 
 // HomeOverviewResp 是首页 overview 接口的总入口返回。
 export interface HomeOverviewResp {

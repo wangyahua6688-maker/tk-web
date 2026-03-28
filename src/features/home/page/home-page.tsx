@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { AlertTriangle } from "lucide-react"
 import { Banner } from "@/src/features/home/components/banner"
 import { LiveDraw } from "@/src/features/home/components/live-draw"
 import { LiveStream } from "@/src/features/home/components/live-stream"
@@ -16,6 +15,11 @@ import { Footer } from "@/src/shared/layout/footer"
 import { Header } from "@/src/shared/layout/header"
 import { LiveChat } from "@/src/shared/layout/live-chat"
 import { MobileNav } from "@/src/shared/layout/mobile-nav"
+import { ErrorBanner } from "@/src/shared/ui/error-banner"
+import { LotteryMediaCard } from "@/src/shared/ui/lottery-media-card"
+import { PillToggleButton } from "@/src/shared/ui/pill-toggle-button"
+import { PillToggleRail } from "@/src/shared/ui/pill-toggle-rail"
+import { StatePanel } from "@/src/shared/ui/state-panel"
 import { getCurrentDrawCycleSeconds } from "@/src/shared/utils/date"
 import { useIsMobile } from "@/components/ui/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -101,17 +105,16 @@ export function HomePage() {
 
         {state.error ? (
           // 首页主请求异常统一在顶部展示，避免某个子模块静默失败导致用户不知所措。
-          <section className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />
-                <p className="text-sm">{state.error}</p>
-              </div>
+          <ErrorBanner
+            className="mb-4"
+            action={
               <Button size="sm" variant="outline" onClick={() => void reload()}>
                 重试
               </Button>
-            </div>
-          </section>
+            }
+          >
+            {state.error}
+          </ErrorBanner>
         ) : null}
 
         <Banner items={state.banners} loading={state.loading} />
@@ -223,22 +226,18 @@ export function HomePage() {
 
           {isMobile ? (
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex flex-1 gap-2 overflow-x-auto whitespace-nowrap pb-1 scrollbar-hide">
+              <PillToggleRail className="flex-1">
                 {state.categories.map((item) => (
-                  <button
+                  <PillToggleButton
                     key={item.key}
-                    type="button"
-                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                      state.currentCategory === item.key
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                    }`}
+                    selected={state.currentCategory === item.key}
+                    shrink
                     onClick={() => void selectCategory(item.key)}
                   >
                     {item.name}
-                  </button>
+                  </PillToggleButton>
                 ))}
-              </div>
+              </PillToggleRail>
               <Button variant="outline" size="sm" className="h-9 shrink-0 rounded-full border-0 bg-secondary/70 px-3 text-xs font-medium shadow-none hover:bg-secondary lg:h-8 lg:rounded-md lg:border lg:bg-background lg:px-3 lg:text-sm" asChild>
                 <Link href={`/gallery${state.currentCategory && state.currentCategory !== "all" ? `?category=${state.currentCategory}` : ""}`}>
                   更多
@@ -246,49 +245,40 @@ export function HomePage() {
               </Button>
             </div>
           ) : (
-            <div className="mb-4 flex flex-wrap gap-2">
+            <PillToggleRail className="mb-4" mode="wrap">
               {state.categories.map((item) => (
-                <button
+                <PillToggleButton
                   key={item.key}
-                  type="button"
                   // 当前分类直接切主色，未选中分类维持次级按钮风格。
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    state.currentCategory === item.key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                  }`}
+                  selected={state.currentCategory === item.key}
                   // 分类切换只影响图纸数据区，不会刷新首页其它模块。
                   onClick={() => void selectCategory(item.key)}
                 >
                   {item.name}
-                </button>
+                </PillToggleButton>
               ))}
-            </div>
+            </PillToggleRail>
           )}
 
           {state.cards.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+            <StatePanel variant="dashed">
               暂无图纸数据
-            </div>
+            </StatePanel>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-x-3 gap-y-4 lg:grid-cols-3">
                 {(isMobile ? state.cards.slice(0, 6) : state.cards).map((item) => (
-                // 图纸卡保持轻量展示：封面 + 标题 + 期号/时间，细节页可后续补跳转。
-                  <article key={item.id} className="overflow-hidden rounded-none border-0 bg-transparent lg:rounded-xl lg:border lg:border-border/60 lg:bg-secondary/20">
-                    <img
-                      src={item.cover_image_url}
-                      alt={item.title}
-                      className="aspect-[4/5] w-full rounded-2xl object-cover lg:aspect-video lg:rounded-none"
-                      loading="lazy"
-                    />
-                    <div className="space-y-1 px-0 pt-2 lg:p-3">
-                      <p className="line-clamp-2 text-xs font-semibold leading-5 sm:text-sm">{item.title}</p>
-                      <p className="text-[11px] text-muted-foreground sm:text-xs">
-                        第 {item.issue} 期 · {item.draw_at || "-"}
-                      </p>
-                    </div>
-                  </article>
+                  <LotteryMediaCard
+                    key={item.id}
+                    href={`/lottery/${item.id}`}
+                    title={item.title}
+                    imageUrl={item.cover_image_url}
+                    issueText={item.issue}
+                    metaText={item.draw_at || "-"}
+                    tone="recommend"
+                    aspect="poster"
+                    className="block rounded-none border-0 bg-transparent hover:scale-[1.01] lg:rounded-xl lg:border lg:border-border/60 lg:bg-secondary/20"
+                  />
                 ))}
               </div>
               {isMobile && state.cards.length > 6 ? (

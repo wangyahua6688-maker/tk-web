@@ -1,7 +1,7 @@
 "use client"
 
 // 开奖历史数据 hook 负责拉取彩种 tab、历史列表和筛选状态，是历史页的数据中台。
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { historyAPI, type LotteryHistoryItem } from "@/src/features/history/api/history-api"
 import { homeAPI } from "@/src/features/home/api/home-api"
 import { normalizeTabs } from "@/src/features/home/mappers/home-mappers"
@@ -34,6 +34,7 @@ function defaultState(): HistoryState {
 
 export function useHistoryData(preferredTabID = 0) {
   const [state, setState] = useState<HistoryState>(() => defaultState())
+  const syncedPreferredTabIDRef = useRef(0)
 
   const loadTabs = useCallback(async () => {
     const overview = await homeAPI.getOverview()
@@ -100,7 +101,7 @@ export function useHistoryData(preferredTabID = 0) {
   const selectTab = useCallback(
     async (tabID: number) => {
       // 切 tab 时只刷新历史列表，不重复请求整个 overview。
-      setState((prev) => ({ ...prev, activeTabID: tabID, loading: true }))
+      setState((prev) => ({ ...prev, activeTabID: tabID, loading: true, error: "" }))
       try {
         const historyPayload = await loadHistory(tabID, state.orderMode, state.showFive)
         setState((prev) => ({
@@ -124,12 +125,13 @@ export function useHistoryData(preferredTabID = 0) {
     // 从首页热门彩种跳转进来时，如果 query 指定了 tabId，就同步切到对应彩种。
     if (
       preferredTabID > 0 &&
-      preferredTabID !== state.activeTabID &&
+      preferredTabID !== syncedPreferredTabIDRef.current &&
       state.tabs.some((tab) => tab.id === preferredTabID)
     ) {
+      syncedPreferredTabIDRef.current = preferredTabID
       void selectTab(preferredTabID)
     }
-  }, [preferredTabID, selectTab, state.activeTabID, state.tabs])
+  }, [preferredTabID, selectTab, state.tabs])
 
   const toggleOrder = useCallback(() => {
     // 升序/降序切换只改状态，真正请求由上层 load effect 统一触发。

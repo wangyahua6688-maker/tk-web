@@ -92,11 +92,30 @@ export function normalizeDashboard(dashboard: DashboardData | null): DashboardDa
     live: {
       ...dashboard.live,
       // 流地址必须经过外链过滤，避免把非法协议带进 video/player。
+      has_data: Boolean(dashboard.live.has_data),
       stream_url: sanitizeOutboundURL(dashboard.live.stream_url)
     },
     draw: {
       ...dashboard.draw,
       playback_url: sanitizeOutboundURL(dashboard.draw.playback_url),
+      labels: dashboard.draw.labels || [],
+      pair_labels: dashboard.draw.pair_labels || dashboard.draw.labels || [],
+      color_labels: dashboard.draw.color_labels || [],
+      zodiac_labels: dashboard.draw.zodiac_labels || [],
+      wuxing_labels: dashboard.draw.wuxing_labels || [],
+      normal_numbers: dashboard.draw.normal_numbers || [],
+      special_single_double: dashboard.draw.special_single_double || "",
+      special_big_small: dashboard.draw.special_big_small || "",
+      sum_single_double: dashboard.draw.sum_single_double || "",
+      sum_big_small: dashboard.draw.sum_big_small || "",
+      special_code: dashboard.draw.special_code || "",
+      normal_code: dashboard.draw.normal_code || "",
+      zheng1: dashboard.draw.zheng1 || "",
+      zheng2: dashboard.draw.zheng2 || "",
+      zheng3: dashboard.draw.zheng3 || "",
+      zheng4: dashboard.draw.zheng4 || "",
+      zheng5: dashboard.draw.zheng5 || "",
+      zheng6: dashboard.draw.zheng6 || "",
       // 统一把最终可展示号码回写到 draw.numbers，页面层只认一套字段。
       numbers
     }

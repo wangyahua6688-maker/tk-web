@@ -30,6 +30,23 @@ const toggleVariants = cva(
 )
 
 // Toggle wraps Radix and keeps active state styling driven by data-state.
+// ... existing code ...
+
+/**
+ * Toggle 组件 - 切换开关组件
+ *
+ * 基于 Radix UI Toggle 构建，支持显式的开/关状态样式。
+ * 用于需要切换状态的场景，如工具栏按钮、选项开关等。
+ *
+ * @param className - 自定义类名，用于添加额外的样式类
+ * @param variant - 切换按钮的变体，控制视觉风格
+ *                  可选值：default(默认，透明背景), outline(带边框和阴影)
+ * @param size - 切换按钮的尺寸
+ *               可选值：default(默认), sm(小), lg(大)
+ * @param props - 其他所有 TogglePrimitive.Root 组件的属性，包括 pressed、onPressedChange 等状态属性
+ *
+ * @returns 渲染后的 Toggle 组件，包含 data-slot 标识和基于 data-state 的状态样式
+ */
 function Toggle({
   className,
   variant,
@@ -45,5 +62,8 @@ function Toggle({
     />
   )
 }
+
+// ... existing code ...
+
 
 export { Toggle, toggleVariants }

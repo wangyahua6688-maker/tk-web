@@ -2,50 +2,25 @@
 
 // 论坛详情页专门处理单篇帖子内容，不和论坛列表页混写，方便后续继续扩展评论与互动能力。
 import Link from "next/link"
-import { useEffect, useState } from "react"
 import { ArrowLeft, CalendarClock, MessageCircle, ThumbsUp } from "lucide-react"
 import { Button } from "@/components/ui/actions/button"
 import { Card, CardContent } from "@/components/ui/display/card"
-import { forumAPI } from "@/src/features/forum/api/forum-api"
-import type { ForumTopicDetailResp } from "@/src/features/forum/model/types"
+import { useForumDetailData } from "@/src/features/forum/hooks/use-forum-detail-data"
 import { formatDateTime, formatRelativeTime } from "@/src/shared/utils/date"
 import { Footer } from "@/src/shared/layout/footer"
 import { Header } from "@/src/shared/layout/header"
 import { MobileNav } from "@/src/shared/layout/mobile-nav"
+import { ErrorBanner } from "@/src/shared/ui/error-banner"
+import { PageSectionShell } from "@/src/shared/ui/page-section-shell"
+import { StatePanel } from "@/src/shared/ui/state-panel"
 
 interface ForumDetailPageProps {
   postID: number
 }
 
 export function ForumDetailPage({ postID }: ForumDetailPageProps) {
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [detail, setDetail] = useState<ForumTopicDetailResp | null>(null)
-
-  useEffect(() => {
-    if (!Number.isFinite(postID) || postID <= 0) {
-      // 路由参数非法时直接终止请求，避免发无意义详情接口。
-      setLoading(false)
-      setError("帖子 ID 无效")
-      return
-    }
-
-    const run = async () => {
-      setLoading(true)
-      setError("")
-      try {
-        // 详情页只拉一次完整聚合数据，由后端同时返回帖子/作者/评论/开奖信息。
-        const response = await forumAPI.topicDetail(postID)
-        setDetail(response)
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "帖子详情加载失败")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    void run()
-  }, [postID])
+  const { state } = useForumDetailData(postID)
+  const { loading, error, detail } = state
 
   return (
     <div className="min-h-screen bg-background">
@@ -62,20 +37,18 @@ export function ForumDetailPage({ postID }: ForumDetailPageProps) {
         </div>
 
         {loading ? (
-          <div className="rounded-[26px] bg-secondary/10 py-12 text-center text-sm text-muted-foreground shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-card lg:shadow-none">
+          <StatePanel>
             加载中...
-          </div>
+          </StatePanel>
         ) : error ? (
-          <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-            {error}
-          </div>
+          <ErrorBanner>{error}</ErrorBanner>
         ) : !detail ? (
-          <div className="rounded-[26px] bg-secondary/10 py-12 text-center text-sm text-muted-foreground shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-card lg:shadow-none">
+          <StatePanel>
             帖子不存在
-          </div>
+          </StatePanel>
         ) : (
           <section className="space-y-4">
-            <article className="rounded-[28px] bg-gradient-to-b from-secondary/18 via-secondary/8 to-transparent p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.24)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-card lg:shadow-none">
+            <PageSectionShell as="article" className="lg:rounded-xl">
               {/* 第一块承接帖子正文与基础互动信息。 */}
               <h1 className="mb-3 text-xl font-bold md:text-2xl">{detail.topic.title}</h1>
               <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -106,7 +79,7 @@ export function ForumDetailPage({ postID }: ForumDetailPageProps) {
               <div className="prose prose-sm max-w-none whitespace-pre-wrap text-sm leading-7 text-foreground">
                 {detail.topic.content || detail.topic.content_preview || "暂无正文内容"}
               </div>
-            </article>
+            </PageSectionShell>
 
             <Card className="border-border/60 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] lg:shadow-none">
               <CardContent className="space-y-3 p-4">

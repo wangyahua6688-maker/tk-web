@@ -7,6 +7,9 @@ import { Heart, MessageCircle, Eye, Flame, ChevronRight, Image as ImageIcon } fr
 import { Button } from "@/components/ui/actions/button"
 import type { ForumTopicItem } from "@/src/features/forum/model/types"
 import { formatRelativeTime } from "@/src/shared/utils/date"
+import { PillToggleButton } from "@/src/shared/ui/pill-toggle-button"
+import { PillToggleRail } from "@/src/shared/ui/pill-toggle-rail"
+import { StatePanel } from "@/src/shared/ui/state-panel"
 import { cn } from "@/lib/utils"
 
 interface CommunityPostsProps {
@@ -84,28 +87,28 @@ export function CommunityPosts({ posts, loading = false }: CommunityPostsProps) 
         </Button>
       </div>
 
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      <PillToggleRail className="mb-6 pb-2">
         {fallbackCategories.map((cat) => (
-          <button
+          <PillToggleButton
             key={cat.id}
+            selected={activeCategory === cat.id}
+            shrink
             onClick={() => setActiveCategory(cat.id)}
-            className={cn(
-              // 选中分类直接切主色，未选中分类维持柔和次级背景。
-              "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all",
-              activeCategory === cat.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-            )}
+            className={cn(activeCategory === cat.id ? "" : "hover:bg-secondary/80 hover:text-foreground")}
           >
             {cat.label}
-          </button>
+          </PillToggleButton>
         ))}
-      </div>
+      </PillToggleRail>
 
       {loading ? (
-        <div className="rounded-xl border border-border/60 bg-card py-12 text-center text-sm text-muted-foreground">
+        <StatePanel variant="outlined">
           加载中...
-        </div>
+        </StatePanel>
+      ) : filteredPosts.length === 0 ? (
+        <StatePanel variant="outlined">
+          当前分类暂无帖子
+        </StatePanel>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPosts.map((post) => (

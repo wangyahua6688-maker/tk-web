@@ -102,6 +102,11 @@ export function useForumData() {
     }))
   }, [])
 
+  const clearSearch = useCallback(() => {
+    // 收起搜索框时同时清空本地输入和已提交条件，避免列表继续停留在空搜索结果。
+    setState((prev) => ({ ...prev, keyword: "", committedKeyword: "" }))
+  }, [])
+
   const setHistoryYear = useCallback((year: number) => {
     setState((prev) => ({ ...prev, selectedYear: year }))
   }, [])
@@ -117,6 +122,7 @@ export function useForumData() {
 
   return {
     state,
+    clearSearch,
     reload: load,
     submitSearch,
     setKeyword,

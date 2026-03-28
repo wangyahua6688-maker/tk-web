@@ -104,9 +104,10 @@ export function Banner({ items, loading = false }: BannerProps) {
 
   const banner = sourceBanners[current]
   const Icon = banner.icon
+  const hasBannerImage = !loading && Boolean(banner.image_url)
 
-  return (
-    <section className="relative mb-5 overflow-hidden bg-transparent lg:mb-6 lg:rounded-2xl lg:border lg:border-border/50 lg:bg-card">
+  const BannerBody = (
+    <>
       {/* Background gradient */}
       <div className={cn(
         "absolute inset-0 bg-gradient-to-r transition-all duration-700",
@@ -120,7 +121,7 @@ export function Banner({ items, loading = false }: BannerProps) {
         </div>
       </div>
 
-      {!loading && banner.image_url ? (
+      {hasBannerImage ? (
         <img
           src={banner.image_url}
           alt={banner.title}
@@ -130,31 +131,51 @@ export function Banner({ items, loading = false }: BannerProps) {
         />
       ) : null}
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-[180px] flex-col justify-center bg-gradient-to-r from-background/55 to-transparent px-0 py-5 md:min-h-[200px] md:p-8 lg:px-6">
-        <div className="max-w-2xl">
-          {/* Highlight badge */}
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary md:text-xs">
-            <Sparkles className="h-3 w-3" />
-            {banner.highlight}
-          </div>
+      {/* 没有图片时保留兜底文案；有图片时去掉前景文案层，只保留纯净轮播图。 */}
+      {!hasBannerImage ? (
+        <div className="relative z-10 flex min-h-[180px] flex-col justify-center bg-gradient-to-r from-background/55 to-transparent px-5 py-5 sm:px-6 md:min-h-[200px] md:p-8 lg:px-6">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary md:text-xs">
+              <Sparkles className="h-3 w-3" />
+              {banner.highlight}
+            </div>
 
-          <h2 className="mb-2 text-xl font-bold tracking-tight text-foreground md:text-3xl">
-            {banner.title}
-          </h2>
-          {banner.link_url ? (
-            <Button className="h-10 rounded-full bg-primary px-5 text-sm text-primary-foreground hover:bg-primary/90 md:h-11 md:rounded-xl" size="lg" asChild>
-              <Link href={banner.link_url} target="_blank">
+            <h2 className="mb-2 text-xl font-bold tracking-tight text-foreground md:text-3xl">
+              {banner.title}
+            </h2>
+            {banner.link_url ? (
+              <Button className="h-10 rounded-full bg-primary px-5 text-sm text-primary-foreground hover:bg-primary/90 md:h-11 md:rounded-xl" size="lg" asChild>
+                <Link href={banner.link_url} target="_blank">
+                  {banner.cta}
+                </Link>
+              </Button>
+            ) : (
+              <Button className="h-10 rounded-full bg-primary px-5 text-sm text-primary-foreground hover:bg-primary/90 md:h-11 md:rounded-xl" size="lg">
                 {banner.cta}
-              </Link>
-            </Button>
-          ) : (
-            <Button className="h-10 rounded-full bg-primary px-5 text-sm text-primary-foreground hover:bg-primary/90 md:h-11 md:rounded-xl" size="lg">
-              {banner.cta}
-            </Button>
-          )}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative z-10 min-h-[180px] md:min-h-[200px]" aria-hidden="true" />
+      )}
+    </>
+  )
+
+  return (
+    <section className="relative mb-5 overflow-hidden rounded-[28px] bg-transparent shadow-[0_18px_40px_-28px_rgba(15,23,42,0.24)] lg:mb-6 lg:rounded-2xl lg:border lg:border-border/50 lg:bg-card lg:shadow-none">
+      {hasBannerImage && banner.link_url ? (
+        <Link
+          href={banner.link_url}
+          target="_blank"
+          aria-label={banner.title}
+          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+        >
+          {BannerBody}
+        </Link>
+      ) : (
+        BannerBody
+      )}
 
       {/* Navigation arrows */}
       <Button

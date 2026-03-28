@@ -1,5 +1,6 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import { useState, useEffect, useRef } from "react"
 import { Play, Pause, Volume2, VolumeX, Maximize2, Radio, Minimize2 } from "lucide-react"
 import { Button } from "@/components/ui/actions/button"
@@ -19,10 +20,13 @@ const LIVE_PLAYBACK_KEEP_SECONDS = 30 * 60
 
 const orbitDisk = {
   // 单圆盘轨道：统一一层圆形轨道，不再做内外双环，画面更稳。
-  size: 196,
-  radius: 76,
   duration: 14,
-  ballSize: 50,
+  size: "clamp(132px, 35vw, 196px)",
+  radius: "clamp(48px, 12.5vw, 76px)",
+  container: "clamp(152px, 40vw, 224px)",
+  ballSize: "clamp(34px, 9.2vw, 50px)",
+  centerSize: "clamp(48px, 13vw, 68px)",
+  centerIconSize: "clamp(20px, 5.5vw, 32px)",
   angles: [-90, -28, 34, 96, 158, 220],
   numbers: [47, 33, 3, 12, 25, 18],
 } as const
@@ -190,13 +194,13 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
       }
     >
       {/* Live Badge */}
-      <div className="absolute left-4 top-4 z-20 flex items-center gap-3">
-        <div className={cn("flex items-center gap-2 rounded-full px-3 py-1.5 shadow-lg", isCountdownStage ? "bg-amber-500" : "bg-red-600")}>
+      <div className="absolute left-3 top-3 z-20 flex items-center gap-3 md:left-4 md:top-4">
+        <div className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 shadow-lg md:gap-2 md:px-3 md:py-1.5", isCountdownStage ? "bg-amber-500" : "bg-red-600")}>
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
           </span>
-          <span className="text-xs font-bold text-white">{isCountdownStage ? "即将开播" : "直播中"}</span>
+          <span className="text-[11px] font-bold text-white md:text-xs">{isCountdownStage ? "即将开播" : "直播中"}</span>
         </div>
       </div>
 
@@ -217,17 +221,30 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
           
           {/* 单圆盘轨道：号码球围绕一层圆盘旋转，不再出现多层同心环。 */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative h-56 w-56 md:h-64 md:w-64">
-                <div className="absolute left-1/2 top-1/2 h-32 w-32 md:h-36 md:w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/12 blur-3xl" />
+          <div className="absolute inset-0 box-border flex items-center justify-center px-3 pb-14 pt-6 md:px-6 md:pb-20 md:pt-6">
+            <div className="flex max-w-full flex-col items-center gap-2 md:gap-3">
+              <div
+                className="relative shrink-0"
+                style={
+                  {
+                    width: orbitDisk.container,
+                    height: orbitDisk.container,
+                    ["--tk-orbit-size" as string]: orbitDisk.size,
+                    ["--tk-orbit-radius" as string]: orbitDisk.radius,
+                    ["--tk-orbit-ball-size" as string]: orbitDisk.ballSize,
+                    ["--tk-orbit-center-size" as string]: orbitDisk.centerSize,
+                    ["--tk-orbit-center-icon-size" as string]: orbitDisk.centerIconSize,
+                  } as CSSProperties
+                }
+              >
+                <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/12 blur-3xl md:h-36 md:w-36" />
 
                 <div
                   // 单圆盘轨道只做一层，减少“同心圆过多”带来的视觉噪音。
                   className="absolute left-1/2 top-1/2 rounded-full border border-white/8 bg-white/[0.015] shadow-[inset_0_0_26px_rgba(255,255,255,0.018)]"
                   style={{
-                    width: `${orbitDisk.size}px`,
-                    height: `${orbitDisk.size}px`,
+                    width: "var(--tk-orbit-size)",
+                    height: "var(--tk-orbit-size)",
                     transform: "translate(-50%, -50%)",
                   }}
                 />
@@ -235,8 +252,8 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
                 <div
                   className="absolute left-1/2 top-1/2"
                   style={{
-                    width: `${orbitDisk.size}px`,
-                    height: `${orbitDisk.size}px`,
+                    width: "var(--tk-orbit-size)",
+                    height: "var(--tk-orbit-size)",
                     transform: "translate(-50%, -50%)",
                     willChange: "transform",
                     animationName: "tk-orbit-spin",
@@ -250,14 +267,14 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
                       key={`single-disk-${num}`}
                       className="absolute left-1/2 top-1/2"
                       style={{
-                        transform: `translate(-50%, -50%) rotate(${orbitDisk.angles[index]}deg) translateY(-${orbitDisk.radius}px)`,
+                        transform: `translate(-50%, -50%) rotate(${orbitDisk.angles[index]}deg) translateY(calc(var(--tk-orbit-radius) * -1))`,
                       }}
                     >
                       <div
                         className="relative flex aspect-square items-center justify-center rounded-full border border-white/14 bg-gradient-to-br from-primary via-primary to-primary/75 shadow-[0_14px_28px_rgba(0,0,0,0.24),0_0_24px_color-mix(in_oklch,var(--primary)_30%,transparent)] ring-1 ring-white/10"
                         style={{
-                          width: `${orbitDisk.ballSize}px`,
-                          height: `${orbitDisk.ballSize}px`,
+                          width: "var(--tk-orbit-ball-size)",
+                          height: "var(--tk-orbit-ball-size)",
                           willChange: "transform",
                           animationName: "tk-counter-spin",
                           animationDuration: `${orbitDisk.duration}s`,
@@ -268,7 +285,7 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
                       >
                         <div className="absolute inset-x-2 top-1.5 h-4 rounded-full bg-white/14 blur-[1px]" />
                         <div className="absolute inset-[2px] rounded-full border border-white/10" />
-                        <span className="relative text-lg font-black tracking-tight text-primary-foreground drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                        <span className="relative text-base font-black tracking-tight text-primary-foreground drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] md:text-lg">
                           {String(num).padStart(2, "0")}
                         </span>
                       </div>
@@ -276,28 +293,40 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
                   ))}
                 </div>
 
-                <div className="absolute left-1/2 top-1/2 flex h-[64px] w-[64px] md:h-[68px] md:w-[68px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/16 bg-slate-950/34 shadow-[0_0_36px_rgba(15,23,42,0.45)] backdrop-blur-md">
+                <div
+                  className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/16 bg-slate-950/34 shadow-[0_0_36px_rgba(15,23,42,0.45)] backdrop-blur-md"
+                  style={{
+                    width: "var(--tk-orbit-center-size)",
+                    height: "var(--tk-orbit-center-size)",
+                  }}
+                >
                   {/* Radio 图标固定在轨道中心，承担“直播核心信号源”的视觉角色。 */}
-                  <Radio className="h-8 w-8 text-primary drop-shadow-[0_0_10px_rgba(255,255,255,0.12)]" />
+                  <Radio
+                    className="text-primary drop-shadow-[0_0_10px_rgba(255,255,255,0.12)]"
+                    style={{
+                      width: "var(--tk-orbit-center-icon-size)",
+                      height: "var(--tk-orbit-center-icon-size)",
+                    }}
+                  />
                 </div>
               </div>
               
               {/* 文字信息固定放到球阵下方，只保留倒计时和开奖时间。 */}
-              <div className="flex flex-col items-center" aria-live="polite">
+              <div className="hidden max-w-full flex-col items-center md:flex" aria-live="polite">
                 {/* 进入 5 分钟临界区后，用高对比分段倒计时替代固定时间。 */}
-                <div className="flex items-center gap-1.5 rounded-[22px] border border-primary/25 bg-black/45 px-3 py-2 shadow-[0_0_30px_rgba(0,0,0,0.18)] backdrop-blur-sm">
+                <div className="flex items-center gap-1 rounded-[20px] border border-primary/25 bg-black/45 px-2.5 py-1.5 shadow-[0_0_30px_rgba(0,0,0,0.18)] backdrop-blur-sm md:gap-1.5 md:px-3 md:py-2">
                   {countdownSegments.map((part, index) => (
-                    <div key={`${part}-${index}`} className="flex items-center gap-1.5">
-                      <span className="inline-flex min-w-[52px] md:min-w-[60px] justify-center rounded-2xl bg-gradient-to-b from-white/16 to-white/6 px-3 py-2 font-mono text-xl md:text-2xl font-black tracking-[0.12em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <div key={`${part}-${index}`} className="flex items-center gap-1 md:gap-1.5">
+                      <span className="inline-flex min-w-[40px] justify-center rounded-2xl bg-gradient-to-b from-white/16 to-white/6 px-2 py-1.5 font-mono text-base font-black tracking-[0.12em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:min-w-[60px] md:px-3 md:py-2 md:text-2xl">
                         {part}
                       </span>
                       {index < countdownSegments.length - 1 ? (
-                        <span className="pb-0.5 font-mono text-xl md:text-2xl font-black text-primary">:</span>
+                        <span className="pb-0.5 font-mono text-base font-black text-primary md:text-2xl">:</span>
                       ) : null}
                     </div>
                   ))}
                 </div>
-                <p className="mt-2 rounded-full bg-black/42 px-4 py-1 text-sm md:text-base text-white/90 [text-shadow:0_2px_8px_rgba(0,0,0,0.85)]">
+                <p className="mt-1.5 rounded-full bg-black/42 px-3 py-1 text-center text-[11px] text-white/90 [text-shadow:0_2px_8px_rgba(0,0,0,0.85)] md:mt-2 md:px-4 md:text-base">
                   {streamSubline}
                 </p>
               </div>
@@ -321,13 +350,13 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
         ) : null}
 
         {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 md:p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-white hover:bg-primary/20 hover:text-white"
+                className="h-8 w-8 text-white hover:bg-primary/20 hover:text-white md:h-9 md:w-9"
                 onClick={() => setIsPlaying(!isPlaying)}
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
@@ -335,7 +364,7 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-white hover:bg-primary/20 hover:text-white"
+                className="h-8 w-8 text-white hover:bg-primary/20 hover:text-white md:h-9 md:w-9"
                 onClick={() => setIsMuted(!isMuted)}
               >
                 {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
@@ -357,7 +386,7 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-white hover:bg-primary/20 hover:text-white"
+                className="h-8 w-8 text-white hover:bg-primary/20 hover:text-white md:h-9 md:w-9"
                 onClick={() => void toggleFullscreen()}
               >
                 {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
@@ -377,6 +406,9 @@ export function LiveStream({ dashboard, activeTabName, className, fillHeight = f
             <h3 className="font-semibold text-foreground">
               {(activeTabName || dashboard?.special_lottery?.name || "彩种")} 开奖直播
             </h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {streamSubline}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">

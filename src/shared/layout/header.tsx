@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, Bell, User, MessageCircle, Trophy, Home, Flame, History } from "lucide-react"
+import { Bell, User, MessageCircle, Trophy, Home, History } from "lucide-react"
 import { Button } from "@/components/ui/actions/button"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { cn } from "@/lib/utils"
@@ -16,8 +15,6 @@ const navItems = [
 ]
 
 export function Header() {
-  // Header 自身只维护一个轻量 UI 状态：移动端菜单开关。
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   // 当前 pathname 用来判断哪个导航项需要高亮。
   const pathname = usePathname()
 
@@ -28,7 +25,6 @@ export function Header() {
         <Link href="/" className="flex items-center gap-3">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60 shadow-lg shadow-primary/20">
             <span className="text-xl font-bold text-primary-foreground">彩</span>
-            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-accent animate-pulse" />
           </div>
           <div className="hidden sm:block">
             <h1 className="bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-xl font-black tracking-[0.04em] text-transparent">
@@ -106,50 +102,7 @@ export function Header() {
             </Link>
           </Button>
 
-          {/* Mobile Menu Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
         </div>
-      </div>
-
-      {/* 移动端菜单单独折叠在头部下方，不把桌面导航逻辑硬塞进小屏布局。 */}
-      <div
-        className={cn(
-          "lg:hidden border-t border-border/40 bg-background/95 backdrop-blur-xl overflow-hidden transition-all duration-300",
-          mobileMenuOpen ? "max-h-80" : "max-h-0"
-        )}
-      >
-        <nav className="flex flex-col p-4 gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              // 点击移动端菜单项后立即收起抽屉，避免跳页后还残留展开态。
-              onClick={() => setMobileMenuOpen(false)}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
-                pathname === item.href
-                  ? "bg-primary/10 text-foreground ring-1 ring-primary/20"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              )}
-            >
-              <item.icon className={cn("h-5 w-5", pathname === item.href ? "text-primary" : "")} />
-              {item.label}
-            </Link>
-          ))}
-          <Button className="mt-2 w-full gap-2 bg-primary text-primary-foreground" asChild>
-            <Link href="/profile">
-              <User className="h-4 w-4" />
-              登录 / 注册
-            </Link>
-          </Button>
-        </nav>
       </div>
     </header>
   )

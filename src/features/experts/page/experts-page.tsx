@@ -2,15 +2,22 @@
 
 // 高手推荐页负责承接高手榜单、筛选条件和关注入口，是高手业务的主页面容器。
 import { useEffect, useMemo, useState } from "react"
-import { Award, Flame, Search, ShieldCheck, TrendingUp, Users } from "lucide-react"
+import { Award, Flame, ShieldCheck, Users } from "lucide-react"
 import { Button } from "@/components/ui/actions/button"
-import { Input } from "@/components/ui/forms/input"
 import { cn } from "@/lib/utils"
 import { useExpertsData } from "@/src/features/experts/hooks/use-experts-data"
 import type { ExpertItem } from "@/src/features/experts/model/types"
+import { ExpertRankCard } from "@/src/shared/ui/expert-rank-card"
 import { Footer } from "@/src/shared/layout/footer"
 import { Header } from "@/src/shared/layout/header"
 import { MobileNav } from "@/src/shared/layout/mobile-nav"
+import { ErrorBanner } from "@/src/shared/ui/error-banner"
+import { InfoNoteCard } from "@/src/shared/ui/info-note-card"
+import { MetricTile } from "@/src/shared/ui/metric-tile"
+import { PageSectionShell } from "@/src/shared/ui/page-section-shell"
+import { PageTitleBar } from "@/src/shared/ui/page-title-bar"
+import { PillToggleButton } from "@/src/shared/ui/pill-toggle-button"
+import { StatePanel } from "@/src/shared/ui/state-panel"
 
 interface BoardTab {
   key: string
@@ -33,8 +40,7 @@ function calcTrendRate(item: ExpertItem): number {
 }
 
 export function ExpertsPage() {
-  const { state, setLotteryCode } = useExpertsData()
-  const [draftLotteryCode, setDraftLotteryCode] = useState("")
+  const { state } = useExpertsData()
   const [activeBoardKey, setActiveBoardKey] = useState("")
 
   const boardTabs = useMemo<BoardTab[]>(() => {
@@ -89,100 +95,54 @@ export function ExpertsPage() {
     }
   }, [state.groups])
 
-  const submitSearch = () => {
-    // 查询动作只把草稿值提交给 hook，由 hook 统一触发刷新。
-    setLotteryCode(draftLotteryCode)
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:pb-8 lg:px-8">
-        <section className="rounded-[28px] bg-gradient-to-b from-secondary/18 via-secondary/8 to-transparent px-4 py-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.24)] md:px-5 md:py-6 lg:rounded-2xl lg:border lg:border-border/60 lg:bg-card/85 lg:p-6 lg:shadow-none">
-          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">高手推荐</h1>
-            </div>
-
-            <div className="w-full lg:w-auto">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-                <div className="relative min-w-0 lg:min-w-[200px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={draftLotteryCode}
-                  onChange={(event) => setDraftLotteryCode(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") submitSearch()
-                  }}
-                  placeholder="按彩种编码筛选"
-                  className="h-10 border-border/70 bg-background/60 pl-9"
-                />
-                </div>
-                <Button className="h-10 rounded-full px-5 lg:rounded-md" onClick={submitSearch}>
-                  查询
-                </Button>
-              </div>
-            </div>
-          </div>
+        <PageSectionShell className="lg:bg-card/85 lg:p-6" padding="page">
+          <PageTitleBar title="高手推荐" size="hero" />
 
           <div className="mb-6 hidden gap-3 lg:grid lg:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[22px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none">
-              <p className="text-xs text-muted-foreground">认证高手</p>
-              <p className="mt-2 text-2xl font-bold text-foreground">{overview.totalExperts || 0}</p>
-            </div>
-            <div className="rounded-[22px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none">
-              <p className="text-xs text-muted-foreground">今日上榜</p>
-              <p className="mt-2 text-2xl font-bold text-foreground">{state.total || activeItems.length || 0}</p>
-            </div>
-            <div className="rounded-[22px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none">
-              <p className="text-xs text-muted-foreground">平均命中率</p>
-              <p className="mt-2 text-2xl font-bold text-emerald-400">{overview.avgHitRate}%</p>
-            </div>
-            <div className="rounded-[22px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none">
-              <p className="text-xs text-muted-foreground">当前最高连中</p>
-              <p className="mt-2 text-2xl font-bold text-rose-400">{overview.maxStreak}</p>
-            </div>
+            <MetricTile label="认证高手" value={overview.totalExperts || 0} className="rounded-[22px] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none" valueClassName="text-2xl font-bold text-foreground" />
+            <MetricTile label="今日上榜" value={state.total || activeItems.length || 0} className="rounded-[22px] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none" valueClassName="text-2xl font-bold text-foreground" />
+            <MetricTile label="平均命中率" value={`${overview.avgHitRate}%`} className="rounded-[22px] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none" valueClassName="text-2xl font-bold text-emerald-400" />
+            <MetricTile label="当前最高连中" value={overview.maxStreak} className="rounded-[22px] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-background/40 lg:shadow-none" valueClassName="text-2xl font-bold text-rose-400" />
           </div>
 
-          {state.error ? (
-            <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-              {state.error}
-            </div>
-          ) : null}
+          {state.error ? <ErrorBanner className="mb-4">{state.error}</ErrorBanner> : null}
 
-            <div className="mb-5 rounded-[24px] bg-secondary/12 p-1.5 lg:rounded-xl lg:border lg:border-border/60 lg:bg-secondary/25">
+          <div className="mb-5 rounded-[24px] bg-secondary/12 p-1.5 lg:rounded-xl lg:border lg:border-border/60 lg:bg-secondary/25">
             <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
               {boardTabs.map((tab) => {
                 const active = tab.key === activeBoardKey
                 return (
-                  <button
+                  <PillToggleButton
                     key={tab.key}
-                    type="button"
                     // 板块切换只在前端切换 activeGroup，不重复请求后端。
                     onClick={() => setActiveBoardKey(tab.key)}
+                    selected={active}
+                    tone="panel"
+                    shape="soft"
                     className={cn(
-                      "rounded-lg px-3 py-2 text-left transition-all",
+                      "relative justify-start border px-3 py-2 text-left transition-all duration-200",
                       active
-                        ? "bg-background text-foreground shadow-[0_12px_30px_-18px_rgba(0,0,0,0.95)]"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "border-primary/45 bg-background text-primary shadow-[0_14px_32px_-20px_rgba(234,179,8,0.55)]"
+                        : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-background/65 hover:text-foreground"
                     )}
                   >
                     <p className="text-sm font-semibold">{tab.title}</p>
-                  </button>
+                    {active ? <span className="absolute inset-x-4 bottom-1 h-1 rounded-full bg-primary/90" /> : null}
+                  </PillToggleButton>
                 )
               })}
             </div>
           </div>
 
           {state.loading ? (
-            <div className="rounded-xl border border-border/60 bg-background/50 py-12 text-center text-sm text-muted-foreground">
-              加载中...
-            </div>
+            <StatePanel className="border border-border/60 bg-background/50 shadow-none">加载中...</StatePanel>
           ) : !weeklyStar ? (
-            <div className="rounded-xl border border-border/60 bg-background/50 py-12 text-center text-sm text-muted-foreground">
-              暂无榜单数据
-            </div>
+            <StatePanel className="border border-border/60 bg-background/50 shadow-none">暂无榜单数据</StatePanel>
           ) : (
             <>
               <section className="mb-5 rounded-[26px] bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent p-5 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.2)] lg:rounded-2xl lg:border lg:border-primary/40 lg:via-card/95 lg:to-background/70 lg:shadow-none">
@@ -219,22 +179,10 @@ export function ExpertsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-center sm:min-w-[340px]">
-                    <div className="rounded-2xl bg-secondary/10 p-3 lg:rounded-lg lg:bg-background/50">
-                      <p className="text-xl font-bold text-emerald-400">{weeklyStar.hit_rate}%</p>
-                      <p className="text-xs text-muted-foreground">命中率</p>
-                    </div>
-                    <div className="rounded-2xl bg-secondary/10 p-3 lg:rounded-lg lg:bg-background/50">
-                      <p className="text-xl font-bold text-rose-400">{weeklyStar.streak}</p>
-                      <p className="text-xs text-muted-foreground">连中</p>
-                    </div>
-                    <div className="rounded-2xl bg-secondary/10 p-3 lg:rounded-lg lg:bg-background/50">
-                      <p className="text-xl font-bold text-foreground">{weeklyStar.return_rate}%</p>
-                      <p className="text-xs text-muted-foreground">回报率</p>
-                    </div>
-                    <div className="rounded-2xl bg-secondary/10 p-3 lg:rounded-lg lg:bg-background/50">
-                      <p className="text-xl font-bold text-foreground">{overview.hotUsers || 0}</p>
-                      <p className="text-xs text-muted-foreground">热度指数</p>
-                    </div>
+                    <MetricTile label="命中率" value={`${weeklyStar.hit_rate}%`} className="lg:bg-background/50" valueClassName="text-xl font-bold text-emerald-400" />
+                    <MetricTile label="连中" value={weeklyStar.streak} className="lg:bg-background/50" valueClassName="text-xl font-bold text-rose-400" />
+                    <MetricTile label="回报率" value={`${weeklyStar.return_rate}%`} className="lg:bg-background/50" valueClassName="text-xl font-bold text-foreground" />
+                    <MetricTile label="热度指数" value={overview.hotUsers || 0} className="lg:bg-background/50" valueClassName="text-xl font-bold text-foreground" />
                   </div>
                 </div>
               </section>
@@ -243,76 +191,13 @@ export function ExpertsPage() {
                 {activeItems.map((item) => {
                   const trendRate = calcTrendRate(item)
                   return (
-                    <article
+                    <ExpertRankCard
                       key={`${activeGroup?.key || "group"}-${item.user_id}`}
-                      className="rounded-[26px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.18)] transition-all hover:bg-secondary/15 lg:rounded-2xl lg:border lg:border-border/60 lg:bg-background/40 lg:p-5 lg:shadow-none lg:hover:border-primary/35"
-                    >
-                      <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
-                        <div>
-                          <div className="flex items-start gap-3">
-                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/35 bg-primary/10 text-sm font-semibold text-primary">
-                              {item.rank}
-                            </span>
-                            <img
-                              src={item.avatar || "/placeholder-user.jpg"}
-                              alt={item.nickname || "高手"}
-                              className="h-12 w-12 rounded-full border border-border/60 object-cover"
-                              loading="lazy"
-                            />
-
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-lg font-semibold text-foreground">{item.nickname || `用户${item.user_id}`}</h3>
-                                <span className="rounded-full border border-border/70 bg-secondary/40 px-2 py-0.5 text-xs text-muted-foreground">
-                                  {item.user_type || "分析师"}
-                                </span>
-                                <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                                  认证
-                                </span>
-                              </div>
-                              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                                {item.score_label || "结合走势与热度进行综合研判"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 grid grid-cols-2 gap-2 xl:grid-cols-4">
-                            <div className="rounded-2xl bg-secondary/10 p-3 text-center lg:rounded-lg lg:bg-card/70">
-                              <p className="text-xl font-bold text-emerald-400">{item.hit_rate}%</p>
-                              <p className="text-xs text-muted-foreground">命中率</p>
-                            </div>
-                            <div className="rounded-2xl bg-secondary/10 p-3 text-center lg:rounded-lg lg:bg-card/70">
-                              <p className="text-xl font-bold text-rose-400">{item.streak}</p>
-                              <p className="text-xs text-muted-foreground">连中</p>
-                            </div>
-                            <div className="rounded-2xl bg-secondary/10 p-3 text-center lg:rounded-lg lg:bg-card/70">
-                              <p className="text-xl font-bold text-foreground">{item.return_rate}%</p>
-                              <p className="text-xs text-muted-foreground">回报率</p>
-                            </div>
-                            <div className="rounded-2xl bg-secondary/10 p-3 text-center lg:rounded-lg lg:bg-card/70">
-                              <p className="text-xl font-bold text-foreground">{Math.max(1, 100 - item.rank * 3)}k</p>
-                              <p className="text-xs text-muted-foreground">关注量</p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4">
-                            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                              <span className="inline-flex items-center gap-1">
-                                <TrendingUp className="h-3.5 w-3.5" />
-                                近期状态
-                              </span>
-                              <span>{trendRate}%</span>
-                            </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/60">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-primary to-rose-500"
-                                style={{ width: `${trendRate}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-row gap-2 lg:flex-col lg:justify-center">
+                      item={item}
+                      trendRate={trendRate}
+                      followCountText={`${Math.max(1, 100 - item.rank * 3)}k`}
+                      actions={
+                        <>
                           <Button className="h-10 min-w-[92px] gap-1 bg-primary text-primary-foreground hover:bg-primary/90">
                             <Users className="h-4 w-4" />
                             关注
@@ -320,9 +205,9 @@ export function ExpertsPage() {
                           <Button variant="outline" className="h-10 min-w-[92px] border-border/70">
                             查看详情
                           </Button>
-                        </div>
-                      </div>
-                    </article>
+                        </>
+                      }
+                    />
                   )
                 })}
               </section>
@@ -334,23 +219,19 @@ export function ExpertsPage() {
               </div>
             </>
           )}
-        </section>
+        </PageSectionShell>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[24px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-card/70 lg:shadow-none">
-            <p className="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-              <Flame className="h-4 w-4" />
-              榜单说明
-            </p>
-            <p className="text-sm text-muted-foreground lg:hidden">榜单每 5 分钟刷新一次，命中率与连中值来自后台统计服务。</p>
-          </div>
-          <div className="rounded-[24px] bg-secondary/10 p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.16)] lg:rounded-xl lg:border lg:border-border/60 lg:bg-card/70 lg:shadow-none">
-            <p className="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-              <ShieldCheck className="h-4 w-4" />
-              风险提示
-            </p>
-            <p className="text-sm text-muted-foreground lg:hidden">榜单仅供参考，请理性参与。异常账户会在后台风控系统中自动降权。</p>
-          </div>
+          <InfoNoteCard
+            title="榜单说明"
+            description="榜单每 5 分钟刷新一次，命中率与连中值来自后台统计服务。"
+            icon={<Flame className="h-4 w-4" />}
+          />
+          <InfoNoteCard
+            title="风险提示"
+            description="榜单仅供参考，请理性参与。异常账户会在后台风控系统中自动降权。"
+            icon={<ShieldCheck className="h-4 w-4" />}
+          />
         </section>
       </main>
 

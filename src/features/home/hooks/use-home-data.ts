@@ -145,8 +145,8 @@ export function useHomeData() {
     async (tabID: number) => {
       // 切换彩种只刷新开奖面板，不重新拉整页，避免造成首页大闪烁。
       if (tabID <= 0) return
-      // 先把 dashboard 清空，避免新 tab 已经高亮，但页面还继续显示旧彩种的直播/开奖数据。
-      setState((prev) => ({ ...prev, activeTabID: tabID, dashboard: null }))
+      // 切换时保留上一张卡片，等新数据回来再整体替换，避免 H5 上出现明显闪屏。
+      setState((prev) => ({ ...prev, activeTabID: tabID, error: "" }))
       try {
         const dashboard = await loadDashboard(tabID)
         // tab 切换只替换 dashboard，其它模块状态保持不变，减少用户感知抖动。
